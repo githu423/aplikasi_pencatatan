@@ -1,0 +1,53 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Pasang Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Pasang Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Buat folder android jika belum ada
+        run: |
+          if [ ! -d android ]; then
+            flutter create . --platforms=android --project-name catatan_keuangan
+          fi
+
+      - name: Ambil dependensi
+        run: flutter pub get
+
+      - name: Bangun APK
+        run: flutter build apk --release
+
+      - name: Simpan APK sebagai artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: catatan-keuangan-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Terbitkan APK di Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Catatan Keuangan v${{ github.run_number }}
+          files: build/app/outputs/flutter-apk/app-release.apk
