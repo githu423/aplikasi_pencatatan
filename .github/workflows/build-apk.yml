@@ -33,11 +33,37 @@ jobs:
             flutter create . --platforms=android --project-name catatan_keuangan
           fi
 
+      - name: Siapkan Android (FlutterFragmentActivity + minSdk 21)
+        run: |
+          set -euo pipefail
+
+          # local_auth membutuhkan FlutterFragmentActivity, bukan FlutterActivity
+          while IFS= read -r -d '' activity; do
+            echo "Menambal $activity agar memakai FlutterFragmentActivity"
+            sed -i 's/FlutterActivity/FlutterFragmentActivity/g' "$activity"
+          done < <(find android -name "MainActivity.kt" -print0 2>/dev/null || true)
+
+          if ! find android -name "MainActivity.kt" | grep -q .; then
+            echo "MainActivity.kt tidak ditemukan" >&2
+            exit 1
+          fi
+
+          # local_auth membutuhkan minSdkVersion minimal 21
+          while IFS= read -r -d '' gradle_file; do
+            sed -i \
+              -e 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' \
+              -e 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' \
+              -e 's/minSdkVersion [0-9]\+/minSdkVersion 21/g' \
+              -e 's/minSdk = [0-9]\+/minSdk = 21/g' \
+              "$gradle_file"
+            echo "Menyetel minSdk 21 di $gradle_file"
+          done < <(find android -type f \( -name "*.gradle" -o -name "*.gradle.kts" \) -print0)
+
       - name: Ambil dependensi
         run: flutter pub get
 
       - name: Bangun APK
-        run: flutter build apk --release
+        run: flutter build apk --release --no-tree-shake-icons
 
       - name: Simpan APK sebagai artifact
         uses: actions/upload-artifact@v4
