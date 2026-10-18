@@ -1,0 +1,18 @@
+subprojects { sub ->
+    sub.afterEvaluate {
+        def androidExt = sub.extensions.findByName("android")
+        if (androidExt != null) {
+            try {
+                androidExt.compileSdkVersion 36
+                println "compileSdk 36 untuk ${sub.path}"
+            } catch (Throwable ignored) {
+                try {
+                    androidExt.compileSdk = 36
+                    println "compileSdk 36 (kts) untuk ${sub.path}"
+                } catch (Throwable ignored2) {
+                    println "Gagal set compileSdk untuk ${sub.path}: ${ignored2.message}"
+                }
+            }
+        }
+    }
+}
