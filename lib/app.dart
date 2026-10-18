@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,11 +25,17 @@ class _CatatanKeuanganAppState extends State<CatatanKeuanganApp>
   bool _isOnboardingDone = false;
   bool _isLocked = false;
 
+  String? _startupError;
+  String? _startupStack;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _bootstrapApp();
+    // Jalankan setelah frame pertama agar context aman
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _bootstrapApp();
+    });
   }
 
   @override
@@ -40,30 +47,67 @@ class _CatatanKeuanganAppState extends State<CatatanKeuanganApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Saat aplikasi aktif kembali dari latar belakang, periksa ulang tanggal ulang tahun
-      final repo = context.read<FinanceRepository>();
-      context.read<BirthdayManager>().evaluateBirthday(repo.profile);
+      try {
+        final repo = context.read<FinanceRepository>();
+        context.read<BirthdayManager>().evaluateBirthday(repo.profile);
+      } catch (e, st) {
+        debugPrint('evaluateBirthday on resume gagal: $e\n$st');
+      }
 
       // Kunci kembali jika PIN diaktifkan
-      if (repo.profile?.pinHash != null && repo.profile!.pinHash!.isNotEmpty) {
-        setState(() {
-          _isLocked = true;
-        });
-      }
+      try {
+        final repo = context.read<FinanceRepository>();
+        if (repo.profile?.pinHash != null && repo.profile!.pinHash!.isNotEmpty) {
+          if (mounted) {
+            setState(() {
+              _isLocked = true;
+            });
+          }
+        }
+      } catch (_) {}
     }
   }
 
   Future<void> _bootstrapApp() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      await _doBootstrap().timeout(
+        const Duration(seconds: 20),
+        onTimeout: () {
+          throw TimeoutException('Timeout inisialisasi aplikasi (20 detik). Periksa database atau plugin.');
+        },
+      );
+    } catch (e, st) {
+      debugPrint('Bootstrap gagal: $e\n$st');
+      if (!mounted) return;
+      setState(() {
+        _startupError = e.toString();
+        _startupStack = st.toString().length > 2000 ? st.toString().substring(0, 2000) : st.toString();
+        _isLoadingInitial = false;
+      });
+    }
+  }
+
+  Future<void> _doBootstrap() async {
+    // SharedPreferences dengan timeout
+    final prefs = await SharedPreferences.getInstance()
+        .timeout(const Duration(seconds: 5), onTimeout: () {
+      throw TimeoutException('Timeout SharedPreferences');
+    });
     final onboardingDone = prefs.getBool(AppConstants.prefOnboardingCompleted) ?? false;
+
+    if (!mounted) return;
 
     // Muat data utama repository
     final repo = context.read<FinanceRepository>();
     await repo.initialize();
 
-    // Periksa status ulang tahun
+    // Periksa status ulang tahun - jangan blokir bootstrap
     if (mounted) {
-      context.read<BirthdayManager>().evaluateBirthday(repo.profile);
+      try {
+        context.read<BirthdayManager>().evaluateBirthday(repo.profile);
+      } catch (e, st) {
+        debugPrint('evaluateBirthday gagal: $e\n$st');
+      }
     }
 
     // Setel Tema
@@ -85,6 +129,15 @@ class _CatatanKeuanganAppState extends State<CatatanKeuanganApp>
         _isLoadingInitial = false;
       });
     }
+  }
+
+  void _retry() {
+    setState(() {
+      _isLoadingInitial = true;
+      _startupError = null;
+      _startupStack = null;
+    });
+    _bootstrapApp();
   }
 
   void _onThemeModeChanged(ThemeMode mode) {
@@ -116,6 +169,68 @@ class _CatatanKeuanganAppState extends State<CatatanKeuanganApp>
       return const Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // Tampilkan layar error jika bootstrap gagal (bukan spinner selamanya)
+    if (_startupError != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Gagal memuat aplikasi')),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 12),
+              const Text(
+                'Gagal memuat aplikasi',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEBEE),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: SelectableText(
+                  _startupError!,
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                ),
+              ),
+              if (_startupStack != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: SelectableText(
+                    _startupStack!,
+                    style: const TextStyle(fontFamily: 'monospace', fontSize: 11, color: Color(0xFF424242)),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _retry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Coba lagi'),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Pesan error ini membantu melacak penyebab. Screenshot layar ini jika masih gagal.',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       );
     }

@@ -21,8 +21,7 @@ class ProfileModel {
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'name': name,
       'birth_date': birthDate.toIso8601String(),
       'pin_hash': pinHash,
@@ -31,6 +30,9 @@ class ProfileModel {
       'is_muted': isMuted ? 1 : 0,
       'last_backup_date': lastBackupDate?.toIso8601String(),
     };
+    // Jangan kirim id null agar SQLite AUTOINCREMENT tidak bingung
+    if (id != null) map['id'] = id;
+    return map;
   }
 
   factory ProfileModel.fromMap(Map<String, dynamic> map) {

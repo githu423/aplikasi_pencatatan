@@ -1,42 +1,87 @@
 import 'package:intl/intl.dart';
 
 /// Helper tanggal dan kalkulasi ulang tahun
+/// DateFormat dibuat lazy dengan fallback agar tidak melempar LocaleDataException saat startup.
 class DateHelper {
-  static final DateFormat _dateFormatFull = DateFormat('d MMMM yyyy', 'id_ID');
-  static final DateFormat _dateFormatShort = DateFormat('d MMM yyyy', 'id_ID');
-  static final DateFormat _dateTimeFormat = DateFormat('d MMM yyyy, HH:mm', 'id_ID');
-  static final DateFormat _timeFormat = DateFormat('HH:mm', 'id_ID');
-  static final DateFormat _dayAndDateFormat = DateFormat('EEEE, d MMMM yyyy', 'id_ID');
-  static final DateFormat _monthYearFormat = DateFormat('MMMM yyyy', 'id_ID');
+  static DateFormat? _dateFormatFull;
+  static DateFormat? _dateFormatShort;
+  static DateFormat? _dateTimeFormat;
+  static DateFormat? _timeFormat;
+  static DateFormat? _dayAndDateFormat;
+  static DateFormat? _monthYearFormat;
+
+  static DateFormat _getOrCreate(DateFormat? current, String pattern) {
+    if (current != null) return current;
+    // Coba id_ID dulu, fallback ke id, lalu tanpa locale
+    for (final locale in ['id_ID', 'id', null]) {
+      try {
+        return locale == null ? DateFormat(pattern) : DateFormat(pattern, locale);
+      } catch (_) {
+        continue;
+      }
+    }
+    return DateFormat(pattern);
+  }
+
+  static DateFormat get _full => _dateFormatFull ??= _getOrCreate(_dateFormatFull, 'd MMMM yyyy');
+  static DateFormat get _short => _dateFormatShort ??= _getOrCreate(_dateFormatShort, 'd MMM yyyy');
+  static DateFormat get _dateTime => _dateTimeFormat ??= _getOrCreate(_dateTimeFormat, 'd MMM yyyy, HH:mm');
+  static DateFormat get _time => _timeFormat ??= _getOrCreate(_timeFormat, 'HH:mm');
+  static DateFormat get _dayDate => _dayAndDateFormat ??= _getOrCreate(_dayAndDateFormat, 'EEEE, d MMMM yyyy');
+  static DateFormat get _monthYear => _monthYearFormat ??= _getOrCreate(_monthYearFormat, 'MMMM yyyy');
 
   /// Contoh: 17 Oktober 2026
   static String formatFull(DateTime date) {
-    return _dateFormatFull.format(date);
+    try {
+      return _full.format(date);
+    } catch (_) {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 
   /// Contoh: 17 Okt 2026
   static String formatShort(DateTime date) {
-    return _dateFormatShort.format(date);
+    try {
+      return _short.format(date);
+    } catch (_) {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 
   /// Contoh: 17 Okt 2026, 14:30
   static String formatDateTime(DateTime date) {
-    return _dateTimeFormat.format(date);
+    try {
+      return _dateTime.format(date);
+    } catch (_) {
+      return date.toIso8601String();
+    }
   }
 
   /// Contoh: 14:30
   static String formatTime(DateTime date) {
-    return _timeFormat.format(date);
+    try {
+      return _time.format(date);
+    } catch (_) {
+      return '${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    }
   }
 
   /// Contoh: Sabtu, 17 Oktober 2026
   static String formatDayAndDate(DateTime date) {
-    return _dayAndDateFormat.format(date);
+    try {
+      return _dayDate.format(date);
+    } catch (_) {
+      return formatFull(date);
+    }
   }
 
   /// Contoh: Oktober 2026
   static String formatMonthYear(DateTime date) {
-    return _monthYearFormat.format(date);
+    try {
+      return _monthYear.format(date);
+    } catch (_) {
+      return '${date.month}/${date.year}';
+    }
   }
 
   /// Memeriksa apakah suatu tahun adalah tahun kabisat
