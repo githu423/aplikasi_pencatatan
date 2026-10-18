@@ -131,11 +131,11 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _availableColors.map((color) {
+                      children: _availableColors.map<Widget>((color) {
                         final isSelected = color.toARGB32() == selectedColor.toARGB32();
                         return InkWell(
                           onTap: () => setDialogState(() => selectedColor = color),
-                          shape: const CircleBorder(),
+                          customBorder: const CircleBorder(),
                           child: Container(
                             width: 32,
                             height: 32,

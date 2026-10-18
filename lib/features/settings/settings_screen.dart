@@ -389,9 +389,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SwitchListTile(
                     secondary: const Icon(Icons.fingerprint, color: Colors.indigo),
                     title: const Text('Buka dengan Sidik Jari'),
-                    value: profile.biometricEnabled,
+                    value: profile?.biometricEnabled ?? false,
                     onChanged: (val) async {
-                      await repo.updatePin(profile.pinHash, val);
+                      await repo.updatePin(profile?.pinHash, val);
                     },
                   ),
                 ],
