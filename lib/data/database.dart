@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../core/constants.dart';
@@ -131,7 +132,7 @@ class AppDatabase {
         'type': 'expense',
         'icon_code_point': cat['icon'].codePoint,
         'icon_font_family': cat['icon'].fontFamily,
-        'color_value': cat['color'].value,
+        'color_value': (cat['color'] as Color).toARGB32(),
       });
     }
 
@@ -142,7 +143,7 @@ class AppDatabase {
         'type': 'income',
         'icon_code_point': cat['icon'].codePoint,
         'icon_font_family': cat['icon'].fontFamily,
-        'color_value': cat['color'].value,
+        'color_value': (cat['color'] as Color).toARGB32(),
       });
     }
   }

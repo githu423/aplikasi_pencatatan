@@ -63,7 +63,39 @@ jobs:
         run: flutter pub get
 
       - name: Bangun APK
-        run: flutter build apk --release --no-tree-shake-icons
+        run: |
+          set -o pipefail
+          flutter --version
+          flutter build apk --release --no-tree-shake-icons 2>&1 | tee apk-build.log
+
+      - name: Laporkan error build
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "### Build APK gagal"
+            echo
+            echo "Flutter:"
+            flutter --version || true
+            echo
+            echo '```'
+            if [ -f apk-build.log ]; then
+              tail -c 50000 apk-build.log
+            else
+              echo "apk-build.log tidak ada"
+            fi
+            echo
+            echo '```'
+          } > /tmp/fail-comment.md
+          gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" -F body=@/tmp/fail-comment.md
+          # Anotasi ringkas agar terbaca lewat Check Runs API
+          {
+            echo "::error title=Flutter build gagal::"
+            if [ -f apk-build.log ]; then
+              grep -E "Error:|error:|FAILURE|FAILED|Unhandled|Exception|NoSuchMethod|undefined|isn't defined|Error:" apk-build.log | tail -n 40
+            fi
+          }
 
       - name: Simpan APK sebagai artifact
         uses: actions/upload-artifact@v4

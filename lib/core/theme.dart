@@ -81,7 +81,7 @@ class AppTheme {
         backgroundColor: Colors.white,
         elevation: 3,
         indicatorColor: primaryColor.withOpacity(0.15),
-        labelTextStyle: MaterialStateProperty.all(
+        labelTextStyle: WidgetStateProperty.all(
           const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ),
@@ -156,7 +156,7 @@ class AppTheme {
         backgroundColor: const Color(0xFF1E293B),
         elevation: 3,
         indicatorColor: const Color(0xFF14B8A6).withOpacity(0.2),
-        labelTextStyle: MaterialStateProperty.all(
+        labelTextStyle: WidgetStateProperty.all(
           const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ),
