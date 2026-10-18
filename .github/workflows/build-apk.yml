@@ -68,27 +68,7 @@ jobs:
             sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 36/' android/app/build.gradle
           fi
 
-          cat > android/force_compile_sdk.gradle << 'EOF'
-subprojects { sub ->
-    sub.afterEvaluate {
-        def androidExt = sub.extensions.findByName("android")
-        if (androidExt != null) {
-            try {
-                androidExt.compileSdkVersion 36
-                println "compileSdk 36 untuk ${sub.path}"
-            } catch (Throwable ignored) {
-                try {
-                    androidExt.compileSdk = 36
-                    println "compileSdk 36 (kts) untuk ${sub.path}"
-                } catch (Throwable ignored2) {
-                    println "Gagal set compileSdk untuk ${sub.path}: ${ignored2.message}"
-                }
-            }
-        }
-    }
-}
-EOF
-
+          cp .github/force_compile_sdk.gradle android/force_compile_sdk.gradle
           if [ -f android/build.gradle.kts ]; then
             echo 'apply(from = "force_compile_sdk.gradle")' >> android/build.gradle.kts
           elif [ -f android/build.gradle ]; then
