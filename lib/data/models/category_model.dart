@@ -43,7 +43,7 @@ class CategoryModel {
       type: map['type'] as String? ?? 'expense',
       iconCodePoint: map['icon_code_point'] as int? ?? Icons.category.codePoint,
       iconFontFamily: map['icon_font_family'] as String?,
-      colorValue: map['color_value'] as int? ?? Colors.grey.value,
+      colorValue: map['color_value'] as int? ?? Colors.grey.toARGB32(),
     );
   }
 

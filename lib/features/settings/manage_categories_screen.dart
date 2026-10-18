@@ -132,7 +132,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
                       spacing: 8,
                       runSpacing: 8,
                       children: _availableColors.map((color) {
-                        final isSelected = color.value == selectedColor.value;
+                        final isSelected = color.toARGB32() == selectedColor.toARGB32();
                         return InkWell(
                           onTap: () => setDialogState(() => selectedColor = color),
                           shape: const CircleBorder(),
@@ -170,7 +170,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
                         type: defaultType,
                         iconCodePoint: selectedIcon.codePoint,
                         iconFontFamily: selectedIcon.fontFamily,
-                        colorValue: selectedColor.value,
+                        colorValue: selectedColor.toARGB32(),
                       );
                       await repo.addCategory(newCat);
                     } else {
@@ -178,7 +178,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
                         name: name,
                         iconCodePoint: selectedIcon.codePoint,
                         iconFontFamily: selectedIcon.fontFamily,
-                        colorValue: selectedColor.value,
+                        colorValue: selectedColor.toARGB32(),
                       );
                       await repo.updateCategory(updated);
                     }
