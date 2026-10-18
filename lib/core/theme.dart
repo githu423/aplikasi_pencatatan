@@ -20,7 +20,6 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       surface: const Color(0xFFF8FAFC),
-      surfaceContainerLowest: Colors.white,
     );
 
     return ThemeData(
@@ -39,7 +38,7 @@ class AppTheme {
           fontWeight: FontWeight.w700,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 1,
         color: Colors.white,
         shadowColor: Colors.black.withOpacity(0.04),
@@ -97,7 +96,6 @@ class AppTheme {
       primary: const Color(0xFF14B8A6),
       secondary: const Color(0xFF38BDF8),
       surface: const Color(0xFF1E293B),
-      surfaceContainerLowest: const Color(0xFF0F172A),
     );
 
     return ThemeData(
@@ -116,7 +114,7 @@ class AppTheme {
           fontWeight: FontWeight.w700,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         color: const Color(0xFF1E293B),
         shape: RoundedRectangleBorder(

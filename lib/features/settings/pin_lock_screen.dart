@@ -212,7 +212,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
         ),
         child: Text(
           key,

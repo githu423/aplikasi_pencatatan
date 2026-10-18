@@ -169,7 +169,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             pw.SizedBox(height: 8),
 
             // Tabel Transaksi
-            pw.TableHelper.fromTextArray(
+            pw.Table.fromTextArray(
               headers: ['Tanggal', 'Jenis', 'Kategori', 'Dompet', 'Judul / Keterangan', 'Nominal'],
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
               cellStyle: const pw.TextStyle(fontSize: 9),

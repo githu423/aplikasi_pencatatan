@@ -228,7 +228,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               // Segmented Jenis Transaksi
               Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
+                  color: theme.colorScheme.surfaceVariant,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 padding: const EdgeInsets.all(4),
@@ -454,7 +454,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.4),
+                    color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
                   ),
