@@ -26,14 +26,15 @@ class CategoryModel {
   Color get color => Color(colorValue);
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'name': name,
       'type': type,
       'icon_code_point': iconCodePoint,
       'icon_font_family': iconFontFamily,
       'color_value': colorValue,
     };
+    if (id != null) map['id'] = id;
+    return map;
   }
 
   factory CategoryModel.fromMap(Map<String, dynamic> map) {

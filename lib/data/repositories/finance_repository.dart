@@ -78,17 +78,21 @@ class FinanceRepository extends ChangeNotifier {
 
   Future<void> initialize() async {
     _isLoading = true;
-    notifyListeners();
-
-    await loadProfile();
-    await loadCategories();
-    await loadTransactions();
-    await loadWallets(); // membutuhkan transactions untuk menghitung saldo berjalan
-    await loadSavingsTargets();
-    _checkSavingsTargetReached();
-
-    _isLoading = false;
-    notifyListeners();
+    // Jangan notify di awal bootstrap agar tidak trigger rebuild saat initState
+    try {
+      await loadProfile();
+      await loadCategories();
+      await loadTransactions();
+      await loadWallets();
+      await loadSavingsTargets();
+      _checkSavingsTargetReached();
+    } catch (e, st) {
+      debugPrint('FinanceRepository.initialize error: $e\n$st');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   // ================= PROFIL =================
