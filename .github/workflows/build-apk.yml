@@ -59,6 +59,42 @@ jobs:
             echo "Menyetel minSdk 21 di $gradle_file"
           done < <(find android -type f \( -name "*.gradle" -o -name "*.gradle.kts" \) -print0)
 
+          # file_picker 8.x compileSdk 34, sementara flutter_plugin_android_lifecycle butuh 36
+          if [ -f android/app/build.gradle.kts ]; then
+            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' android/app/build.gradle.kts
+          fi
+          if [ -f android/app/build.gradle ]; then
+            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' android/app/build.gradle
+            sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 36/' android/app/build.gradle
+          fi
+
+          cat > android/force_compile_sdk.gradle << 'EOF'
+subprojects { sub ->
+    sub.afterEvaluate {
+        def androidExt = sub.extensions.findByName("android")
+        if (androidExt != null) {
+            try {
+                androidExt.compileSdkVersion 36
+                println "compileSdk 36 untuk ${sub.path}"
+            } catch (Throwable ignored) {
+                try {
+                    androidExt.compileSdk = 36
+                    println "compileSdk 36 (kts) untuk ${sub.path}"
+                } catch (Throwable ignored2) {
+                    println "Gagal set compileSdk untuk ${sub.path}: ${ignored2.message}"
+                }
+            }
+        }
+    }
+}
+EOF
+
+          if [ -f android/build.gradle.kts ]; then
+            echo 'apply(from = "force_compile_sdk.gradle")' >> android/build.gradle.kts
+          elif [ -f android/build.gradle ]; then
+            echo "apply from: 'force_compile_sdk.gradle'" >> android/build.gradle
+          fi
+
       - name: Ambil dependensi
         run: flutter pub get
 
